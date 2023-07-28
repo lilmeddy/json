@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <main>
+        <div id="post"></div>
+        <div id="modal">
+            <form action="">
+                <h1>Post</h1>
+                <input type="text" style="display: none;" id="postId">
+            <input type="text" placeholder="author" id="author"><br><br>
+            <input type="text" placeholder="title" id="title"><br><br>
+            <textarea placeholder="content" id="content" cols="30" rows="10"></textarea> <br><br> 
+            <button onclick="editpost(event)">Edit Post </button>
+     
+             </form>
+        </div>
+    </main>
+</body>
+</html>
+<script>
+    let allPost =[]
+    let post =document.getElementById("post")
+    let author = document.getElementById("author")
+    let title = document.getElementById("title")
+    let content = document.getElementById("content")
+    let modal = document.getElementById("modal")
+    let postId = document.getElementById("postId")
+    modal.style.display = "none"
+function fetchData(){
+    fetch("http://localhost:1234/post").then((res)=>res.json())
+    .then((res)=>{
+        console.log(res)
+        allPost=res
+        dispPost()
+
+        
+    })
+}
+
+fetchData()
+function dispPost(){
+    allPost.forEach((el)=>{
+    post.innerHTML +=`
+    <div>
+        <button onclick="del(${el.id})">&times</button>
+        <button onclick="edit(${el.id})">edit</button>
+        <h1>${el.author}</h1>
+        <h4>${el.title}</h4>
+        <p>${el.content}</p>
+        </div>
+    `
+    })
+}
+
+// disp.find(edit)
+function del(id){
+    console.log(id);
+    fetch(`http://localhost:1234/post/${id}`,{
+        headers:{
+
+            "Content-Type": "application/json"
+        },
+        method: "DELETE"
+    }).then((res)=>res.json())
+    .then((res)=>{
+        console.log(res);
+       
+       post.innerHTML =""
+        fetchData()
+    }).catch((err)=>{
+        console.log(err);
+    })
+}
+function edit(e){
+    console.log(e);
+    let disp = allPost.find((item)=> item.id == e)
+    console.log(disp);
+    if(disp){
+        modal.style.display = "block"
+        author.value = disp.author
+        title.value = disp.title
+        content.value = disp.content
+        postId.value = disp.id
+    }
+}
+function editpost(ev){
+    ev.preventDefault();
+    console.log(postId);
+    let data ={
+            author:author.value,
+            title:title.value,
+            content:content.value,
+            
+        }
+        console.log(data);
+       fetch(`http://localhost:1234/post/${postId.value}`,{
+        headers:{
+        "Content-Type": "application/json"
+       },
+       method:"PATCH",
+       body: JSON.stringify(data)
+    }).then((res)=>res.json())
+.then((res)=>{
+    console.log(res);
+    modal.style.display= "none"
+    fetchData()
+}).catch((err)=>{
+    console.log(err);
+
+       })
+}
+</script>
